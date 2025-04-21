@@ -1,4 +1,4 @@
-    # ServoLED Project
+# ServoLED Project
 
 This project is designed for an ESP32 microcontroller to control a servo motor, a WS2812 LED ring, and respond to audio input. It also includes time-based automation and a web interface for configuration.
 
