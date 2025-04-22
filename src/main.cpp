@@ -76,6 +76,7 @@ void AudioTask_loop(){
     if(count_intervals==ten_secs_intervals){
       strip->setBrightness(16);
       Serial.println("10 seconds of silence");
+      count_intervals = 0;
     }else{
       count_intervals++;
     }
@@ -127,7 +128,7 @@ void setup()
   // Disable brownout detector
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
   
-  Serial.begin(115200);
+  Serial.begin(921600);
   Serial.printf("servo_pin is %d",servo_pin);
   delay(1000);
   
