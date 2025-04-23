@@ -269,21 +269,15 @@ void WiFi_loop(void){
 }
 // =====================================================
 // tosk run by Taskscheduler to handle WIFI  
-class TaskWiFi : public Task {
+class MyWiFi {
   public:
-    void (*_myCallback)();
-    ~TaskWiFi() {};
-    TaskWiFi(unsigned long interval, Scheduler* aS, void (* myCallback)() ) :  Task(interval, TASK_FOREVER, aS, true) {
-      _myCallback = myCallback;
+    ~MyWiFi() {};
+    MyWiFi() {
+      
     };
-    bool Callback(){
-      _myCallback();
-      return true;     
-    };
+    
 };
-Task * myTaskWiFi;
 
 void CaptivePortalSetup(){
     loadCredentials(); // Load WLAN credentials from network
-    myTaskWiFi = new TaskWiFi(100,&myScheduler,WiFi_loop);
 }

@@ -30,35 +30,13 @@
         {} /**< Debug Print Line Placeholder if Debug is disabled */
     #endif
 
-class AudioTask : public Task {
+class MyAudio  {
   public:
-    void (*_myCallback)();
-    ~AudioTask();
-    AudioTask(unsigned long interval, Scheduler* aS, void (* myCallback)() );// :  Task(interval, TASK_FOREVER, aS, true) {
-    //  _myCallback = myCallback;
-    //};
-    bool Callback();//
+    ~MyAudio();
+    MyAudio();
     float measure(int read_time_msecs);
-    float lastMeasure = 0.0;
-    //  _myCallback();
-    //  return true;     
-    //};
 };
 
 
-/*!
- *  @brief  Class that stores state and functions for ACS712
- */
-/*
-class Audio {
-    public:
-    
-        float measure(int read_time_msecs);
-    
-
-    //private:
-
-};
-*/
 
 #endif

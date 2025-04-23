@@ -19,7 +19,7 @@ int servo_pin = D4;  // GPIO 2 for  D1 mini microcontroller
 //Servo myservo;
 int angle = 0; 
 
-AudioTask * myAudioTask;
+MyAudio * myAudioTask;
 
 // On and Off Hours and Minutes
 extern String hh_on, mm_on, hh_off, mm_off;
@@ -44,6 +44,8 @@ const char* ntpServer = "europe.pool.ntp.org";
 tm timeinfo;
 bool got_local_time = false;
 
+extern void WiFi_loop();
+
 void printLocalTime()
 {
   struct tm timeinfo;
@@ -58,31 +60,45 @@ void AudioTask_loop(){
   if(audio_light_on){
     float sigma = myAudioTask->measure(100);
     int br;
-    if(sigma > 30.0){  
-      br = sigma;
-      if(br>7)
-        br=7;
-      if(br>0)
-        count_intervals = 0;
+    int motor_pwm;
+    if(sigma > 20.0){  
+      motor_pwm = 220 ;
+      // if(motor_pwm > 255)
+      //   motor_pwm = 255;
+    
+      Serial.printf("sigma=%.1f motor_pwm=%d \r\n",sigma, motor_pwm);
       
+    }else{
+      motor_pwm = 0;
+    }
+
+    if(sigma > 5.0){  
+      br = sigma;
+      if(br> 255)
+        br=255;
+      // if(br>0)
+      //   count_intervals = 0;
+      Serial.printf("sigma=%.1f br=%d \r\n",sigma, br);
+        
     }else{
       br = 0;
     }
-    strip->setBrightness(br*12);
-    analogWrite(servo_pin, br*32);
-    //Serial.print("sigma=");Serial.print(sigma);Serial.print(" br=");Serial.println(br);
+    strip->setBrightness(br);
+    analogWrite(servo_pin, motor_pwm);
+    Serial.printf("sigma=%.1f br=%d motor_pwm=%d\r\n", sigma, br, motor_pwm);
     
-    Serial.printf("sigma=%f br=%d\n",sigma, br);
-    if(count_intervals==ten_secs_intervals){
-      strip->setBrightness(16);
-      Serial.println("10 seconds of silence");
-      count_intervals = 0;
-    }else{
-      count_intervals++;
-    }
+    
+    // if(count_intervals==ten_secs_intervals){
+    //   strip->setBrightness(16);
+    //   Serial.println("10 seconds of silence");
+    //   count_intervals = 0;
+    // }else{
+    //   count_intervals++;
+    // }
   }else
   {
     strip->setBrightness(0);
+    analogWrite(servo_pin, 0);
   }
 
   // check if we ar ON or OFF
@@ -142,23 +158,27 @@ void setup()
   strip->setBrightness(50);
   strip->show(); // Initialize all pixels to 'off'
 
-  MyTaskWS2812Ring = new TaskWS2812Ring(25,&myScheduler, WS2812Ring_loop); 
+  //MyTaskWS2812Ring = new TaskWS2812Ring(25,&myScheduler, WS2812Ring_loop); 
 
   // Configure ADC attenuation to allow 0–3.3V range
   analogSetPinAttenuation(34, ADC_11db); // ADC_11db allows 0–3.3V input
 
-  myAudioTask = new AudioTask(audio_task_interval_msecs,&myScheduler,AudioTask_loop); 
+  //myAudioTask = new AudioTask(audio_task_interval_msecs,&myScheduler,AudioTask_loop); 
   
   CaptivePortalSetup();
+  
   connectWifi(); // Connect to WLAN if credentials are available
   WebServerSetup(); 
 
 
 } 
 
+int ws2812_ndx = 35;
 void loop(){
-
-    myScheduler.execute();
+    WiFi_loop();
+    WS2812Ring_loop(& ws2812_ndx);
+    AudioTask_loop();
+    web_server.handleClient();
 
 }
   
