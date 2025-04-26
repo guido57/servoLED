@@ -4,12 +4,11 @@
 #include "captive_portal.h"
 #include "handleHttp.h"
 
-#include <NTPClient.h>
 extern Scheduler myScheduler;
 //=== CaptivePortal stuff ================
 
 /* hostname for mDNS. Should work at least on windows. Try http://esp32.local */
-const char *myHostname = "esp8266";
+const char *myHostname = "esp32";
 
 // Settings
 String ssid;
@@ -27,10 +26,6 @@ extern WebServer web_server;
 //const long  gmtOffset_sec = 3600; // GMT + 1
 //Change the Daylight offset in milliseconds. If your country observes Daylight saving time set it to 3600. Otherwise, set it to 0.
 //const int   daylightOffset_sec = 3600;
-
-WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP);
-
 
 
 // DNS server
@@ -207,7 +202,7 @@ void WebServerSetup(){
   web_server.onNotFound(handleNotFound);
   web_server.begin(); // Web server start
   Serial.println("HTTP server started"); 
-  myTaskWebServer = new TaskWebServer(30,&myScheduler,webserver_loop);
+  
 }
 // =====================================================
 // Callback for the TaskWIFI  
@@ -246,12 +241,6 @@ void WiFi_loop(void){
 
       _PL("just connected -> Turn off the Access Point")
       WiFi.mode(WIFI_STA);
-      _PL("just connected -> get time from NTP")
-      timeClient.begin();
-      timeClient.setTimeOffset(3600); // 1 hour more than GMT
-      timeClient.update();
-      
-      Serial.printf("NTP time is %s\r\n",timeClient.getFormattedTime().c_str());
     }
     else if (s == WL_NO_SSID_AVAIL){
       _PL("no SSID available -> turn on the Access Point");
@@ -260,11 +249,7 @@ void WiFi_loop(void){
     else{
       _PL("not connected -> turn on the Access Point");
       AccessPointSetup();
-
     }
-  }
-  if (s == WL_CONNECTED){
-    timeClient.update();
   }
 }
 // =====================================================
