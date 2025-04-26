@@ -61,12 +61,12 @@ void AudioTask_loop(){
     float sigma = myAudioTask->measure(100);
     int br;
     int motor_pwm;
-    if(sigma > 20.0){  
+    if(sigma > 50.0){  
       motor_pwm = 220 ;
       // if(motor_pwm > 255)
       //   motor_pwm = 255;
     
-      Serial.printf("sigma=%.1f motor_pwm=%d \r\n",sigma, motor_pwm);
+      Serial.printf("%lu sigma=%.1f motor_pwm=%d \r\n",millis(),sigma, motor_pwm);
       
     }else{
       motor_pwm = 0;
@@ -78,14 +78,14 @@ void AudioTask_loop(){
         br=255;
       // if(br>0)
       //   count_intervals = 0;
-      Serial.printf("sigma=%.1f br=%d \r\n",sigma, br);
+      Serial.printf("%lu sigma=%.1f br=%d \r\n",millis(), sigma, br);
         
     }else{
       br = 0;
     }
     strip->setBrightness(br);
     analogWrite(servo_pin, motor_pwm);
-    Serial.printf("sigma=%.1f br=%d motor_pwm=%d\r\n", sigma, br, motor_pwm);
+    //Serial.printf("sigma=%.1f br=%d motor_pwm=%d\r\n", sigma, br, motor_pwm);
     
     
     // if(count_intervals==ten_secs_intervals){
@@ -145,8 +145,8 @@ void setup()
   WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
   
   Serial.begin(921600);
-  Serial.printf("servo_pin is %d",servo_pin);
   delay(1000);
+  Serial.printf("servo_pin is %d",servo_pin);
   
   // Configure PWM for ESP32
   ledcSetup(PWM_CHANNEL, PWM_FREQUENCY, PWM_RESOLUTION); // Set frequency and resolution
@@ -174,12 +174,54 @@ void setup()
 } 
 
 int ws2812_ndx = 35;
+unsigned long wifi_elapsed = 0UL;
+unsigned long ws2812_elapsed = 0UL;
+unsigned long audio_elapsed = 0UL; 
+unsigned long web_elapsed = 0UL;
+unsigned long onesec = 0UL;
+unsigned long wifi_avg = 0UL;
+unsigned long ws2812_avg = 0UL;
+unsigned long audio_avg = 0UL; 
+unsigned long web_avg = 0UL;
+int count = 0;
 void loop(){
+    wifi_elapsed = millis();
     WiFi_loop();
-    WS2812Ring_loop(& ws2812_ndx);
-    AudioTask_loop();
-    web_server.handleClient();
+    wifi_elapsed = millis() - wifi_elapsed;
+    wifi_avg += wifi_elapsed;
 
+    ws2812_elapsed = millis();
+    WS2812Ring_loop(& ws2812_ndx);
+    ws2812_elapsed = millis() - ws2812_elapsed; 
+    ws2812_avg += ws2812_elapsed;
+
+    audio_elapsed = millis();
+    AudioTask_loop();
+    audio_elapsed = millis() - audio_elapsed;
+    audio_avg += audio_elapsed;
+
+    web_elapsed = millis();
+    web_server.handleClient();
+    web_elapsed = millis() - web_elapsed;
+    web_avg += web_elapsed;
+    
+    count ++;
+
+    if(millis() - onesec > 1000UL){
+      onesec = millis();
+      wifi_avg /= count;
+      ws2812_avg /= count;  
+      audio_avg /= count;
+      web_avg /= count;  
+      Serial.printf("%lu wifi_avg=%d ws2812_avg=%d audio_avg=%d web_avg=%d\r\n",
+            millis(), wifi_avg,ws2812_avg,audio_avg,web_avg);
+      wifi_avg = 0UL;
+      ws2812_avg = 0UL;   
+      audio_avg = 0UL;
+      web_avg = 0UL;  
+      count = 0;   
+    }
+    
 }
   
 
