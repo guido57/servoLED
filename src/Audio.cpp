@@ -11,9 +11,7 @@ MyAudio::MyAudio(){
 
 float MyAudio::measure(int read_time_msecs){
 
-  float samples_per_sec = 1000.0;
-  int numsamples = (read_time_msecs*samples_per_sec)/1000;
-  //inputStats.setInitialValue(0.0, 0.0);
+  int numsamples = 100;
   int start_millis = millis();
   int prev_millis = start_millis;
   double sigma = 0.0;
@@ -22,21 +20,14 @@ float MyAudio::measure(int read_time_msecs){
     int sensorValue = analogRead(34);  // read the analog in value:
     sigma += (float) sensorValue * (float) sensorValue;
     mean += sensorValue;
-    float local_delay = 1000.0* (float) i / samples_per_sec - (prev_millis-start_millis);
-    if(local_delay > 0)
-      vTaskDelay(local_delay );
-    prev_millis=millis();
+    vTaskDelay(1); // 1ms delay to allow other tasks to run
   }
   mean = mean / (float) numsamples;
   sigma = sqrtf(sigma/numsamples - mean*mean);
   
-  int stop_millis = millis();
+  //int stop_millis = millis();
   //Serial.print("measure lasted ");Serial.println(stop_millis-start_millis);
       
-  //Serial.print( "\tmean: " ); Serial.print( mean );
-   
-  // output sigma or variation values associated with the inputValue itself
-  //Serial.print( "\tsigma: " ); Serial.println( sigma );
   return sigma;
 }
 
